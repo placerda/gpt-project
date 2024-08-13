@@ -279,6 +279,13 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Get feature name
+        id: get_RELEASE_NAME
+        run: |
+          RELEASE_NAME=${GITHUB_REF#refs/heads/release/}
+          echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
+          echo "RELEASE_NAME is $RELEASE_NAME"
+
       - name: Build and Push image
         if: steps.check_image.outputs.exists == 'false'
         run: |        
@@ -291,8 +298,10 @@ jobs:
         if: steps.check_image.outputs.exists == 'true'
         run: |
           echo "Image already exists. Tagging and importing."        
-          az acr import -n $AZURE_CONTAINER_REGISTRY_NAME --source $SOURCE_REGISTRY.azurecr.io/$AZURE_CONTAINER_REPOSITORY_NAME:${{ github.sha }}
-          #  TODO TAG
+          az acr import -n $AZURE_CONTAINER_REGISTRY_NAME \
+            --source $SOURCE_REGISTRY.azurecr.io/$AZURE_CONTAINER_REPOSITORY_NAME:${{ github.sha }} \
+            --image $AZURE_CONTAINER_REPOSITORY_NAME:${{ github.sha }} \
+            --image $AZURE_CONTAINER_REPOSITORY_NAME:$RELEASE_NAME
 
           # in case ACR is in another subscription: 
           # az acr import -n myregistry --source sourcerepository:sourcetag -t targetrepository:targettag -r /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sourceResourceGroup/providers/Microsoft.ContainerRegistry/registries/sourceRegistry
