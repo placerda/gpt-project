@@ -268,13 +268,36 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Import image
+      - name: Check if image exists
+        id: check_image
+        run: |
+          if az acr repository show-tags -n $AZURE_CONTAINER_REGISTRY_NAME --repository $AZURE_CONTAINER_REPOSITORY_NAME --query "contains(@, '${{ github.sha }}')" | grep -q true; then
+            echo "Image exists."
+            echo "exists=true" >> $GITHUB_OUTPUT
+            else
+            echo "Image does not exist. This is a bug fix."
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and Push image
+        if: steps.check_image.outputs.exists == 'false'
         run: |        
+          echo "Image does not exist. Building a new image."
+          # TODO BUILD
+          # TODO TAG 
+          # TODO PUSH
+
+      - name: Import image
+        if: steps.check_image.outputs.exists == 'true'
+        run: |
+          echo "Image already exists. Tagging and importing."        
           az acr import -n $AZURE_CONTAINER_REGISTRY_NAME --source $SOURCE_REGISTRY.azurecr.io/$AZURE_CONTAINER_REPOSITORY_NAME:${{ github.sha }}
-          
+          #  TODO TAG
+
           # in case ACR is in another subscription: 
           # az acr import -n myregistry --source sourcerepository:sourcetag -t targetrepository:targettag -r /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sourceResourceGroup/providers/Microsoft.ContainerRegistry/registries/sourceRegistry
 
+ 
 
   deploy-flow:
     runs-on: ubuntu-latest
