@@ -99,8 +99,7 @@ jobs:
         run: | 
           # Deploy Flow
           echo "🔶 | Deploying to Azure"
-          sha=${{ github.sha }}      
-          image_tag="${AZURE_CONTAINER_REPOSITORY_NAME}:${sha::7}"
+          image_tag="${AZURE_CONTAINER_REPOSITORY_NAME}:${{ github.sha }}"
           name="${AZURE_APP_SERVICE_NAME}"
           service_plan_name="${AZURE_APP_SERVICE_PLAN_NAME}"
           subscription="${AZURE_SUBSCRIPTION_ID}"

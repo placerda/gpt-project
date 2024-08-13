@@ -209,8 +209,7 @@ jobs:
         run: |
             echo "✅ Building docker image..."
             path=dist
-            sha=${{ github.sha }}
-            image_tag=$AZURE_CONTAINER_REPOSITORY_NAME:${sha::7}
+            image_tag=$AZURE_CONTAINER_REPOSITORY_NAME:${{ github.sha }}
             echo "Change working directory to $path"
             cd "$path"
             docker build -t "$image_tag" .
@@ -232,8 +231,7 @@ jobs:
           AZURE_CONTAINER_REPOSITORY_NAME: ${{needs.setup-env-job.outputs.AZURE_CONTAINER_REPOSITORY_NAME}}             
         run: |
           echo "✅ Run image..."
-          sha=${{ github.sha }}
-          image_tag=$AZURE_CONTAINER_REPOSITORY_NAME:${sha::7}
+          image_tag=$AZURE_CONTAINER_REPOSITORY_NAME:${{ github.sha }}
           docker run -d -p 8080:8080 -e PROMPTFLOW_SERVING_ENGINE=$PROMPTFLOW_SERVING_ENGINE -e PROMPTFLOW_WORKER_NUM=$PROMPTFLOW_WORKER_NUM $image_tag
 
       - name: Register Image
@@ -241,8 +239,7 @@ jobs:
           AZURE_CONTAINER_REGISTRY_NAME: ${{needs.setup-env-job.outputs.AZURE_CONTAINER_REGISTRY_NAME}}
           AZURE_CONTAINER_REPOSITORY_NAME: ${{needs.setup-env-job.outputs.AZURE_CONTAINER_REPOSITORY_NAME}}  
         run: |
-          sha=${{ github.sha }}
-          image_tag=$AZURE_CONTAINER_REPOSITORY_NAME:${sha::7}
+          image_tag=$AZURE_CONTAINER_REPOSITORY_NAME:${{ github.sha }}
           full_registry_name="$AZURE_CONTAINER_REGISTRY_NAME.azurecr.io"
           echo "✅ Trying to login to $full_registry_name..."
           az acr login -n "$full_registry_name"
