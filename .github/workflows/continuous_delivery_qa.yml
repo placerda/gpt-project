@@ -289,7 +289,7 @@ jobs:
 
       ## Happy path: Import image from dev registry
 
-      - name: Import image from dev regitry
+      - name: Import image from dev registry
         if: steps.check_image.outputs.IMAGE_EXISTS == 'true'
         run: |
           echo "Image already IMAGE_EXISTS. retag with release version and import to qa acr."        
