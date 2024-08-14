@@ -271,7 +271,7 @@ jobs:
       - name: Check if image exists
         id: check_image
         run: |
-          if az acr repository show-tags -n $AZURE_CONTAINER_REGISTRY_NAME --repository $AZURE_CONTAINER_REPOSITORY_NAME --query "contains(@, '${{ github.sha }}')" | grep -q true; then
+          if az acr repository show-tags -n $SOURCE_REGISTRY --repository $AZURE_CONTAINER_REPOSITORY_NAME --query "contains(@, '${{ github.sha }}')" | grep -q true; then
             echo "Image exists."
             echo "exists=true" >> $GITHUB_OUTPUT
             else
@@ -283,8 +283,8 @@ jobs:
         id: get_RELEASE_NAME
         run: |
           RELEASE_NAME=${GITHUB_REF#refs/heads/release/}
-          echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
-          echo "RELEASE_NAME is $RELEASE_NAME"
+          echo "RELEASE_NAME=$RELEASE_NAME-rc" >> $GITHUB_ENV
+          echo "RELEASE_NAME is $RELEASE_NAME-rc"
 
       - name: Build and Push image
         if: steps.check_image.outputs.exists == 'false'
@@ -297,16 +297,14 @@ jobs:
       - name: Import image
         if: steps.check_image.outputs.exists == 'true'
         run: |
-          echo "Image already exists. Tagging and importing."        
+          echo "Image already exists. retag with release version and import."        
           az acr import -n $AZURE_CONTAINER_REGISTRY_NAME \
             --source $SOURCE_REGISTRY.azurecr.io/$AZURE_CONTAINER_REPOSITORY_NAME:${{ github.sha }} \
             --image $AZURE_CONTAINER_REPOSITORY_NAME:${{ github.sha }} \
-            --image $AZURE_CONTAINER_REPOSITORY_NAME:$RELEASE_NAME
+            --image $AZURE_CONTAINER_REPOSITORY_NAME:$RELEASE_NAME --force
 
           # in case ACR is in another subscription: 
           # az acr import -n myregistry --source sourcerepository:sourcetag -t targetrepository:targettag -r /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sourceResourceGroup/providers/Microsoft.ContainerRegistry/registries/sourceRegistry
-
- 
 
   deploy-flow:
     runs-on: ubuntu-latest
