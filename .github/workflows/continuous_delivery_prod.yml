@@ -151,7 +151,7 @@ jobs:
 
           if az acr repository show-tags -n $SOURCE_REGISTRY --repository $AZURE_CONTAINER_REPOSITORY_NAME --query "contains(@, '${source_image_tag}')" | grep -q true; then
             echo "✅ | Image ${source_image_tag} exists in QA ACR."
-            az acr import -n $AZURE_CONTAINER_REGISTRY_NAME --source $SOURCE_REGISTRY.azurecr.io/$AZURE_CONTAINER_REPOSITORY_NAME:$source_image_tag -image $AZURE_CONTAINER_REPOSITORY_NAME:$image_tag
+            az acr import -n $AZURE_CONTAINER_REGISTRY_NAME --source $SOURCE_REGISTRY.azurecr.io/$AZURE_CONTAINER_REPOSITORY_NAME:$source_image_tag --image $AZURE_CONTAINER_REPOSITORY_NAME:$image_tag --force
             # in case ACR is in another subscription: 
             # az acr import -n myregistry --source sourcerepository:sourcetag -t targetrepository:targettag -r /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sourceResourceGroup/providers/Microsoft.ContainerRegistry/registries/sourceRegistry
             else
