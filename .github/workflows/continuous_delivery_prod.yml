@@ -8,7 +8,9 @@ on:
       
 jobs:
   setup-env-job:
-    if: ${{ github.repository != 'Azure/llmops-project-template' }} && github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
+    if: ${{ github.repository != 'Azure/llmops-project-template' }} && 
+        github.event.pull_request.merged == true && 
+        startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: ubuntu-latest
     environment: prod
     outputs:
@@ -144,17 +146,15 @@ jobs:
           SOURCE_IMAGE_TAG="${RELEASE_VERSION}-rc-${COMMIT_SHA}"
           image_tag="${RELEASE_VERSION}-${COMMIT_SHA}"
 
-          if az acr repository show-tags -n $SOURCE_REGISTRY --repository $AZURE_CONTAINER_REPOSITORY_NAME --query "contains(@, '${image_tag}')" | grep -q true; then
-            echo "Image exists in QA ACR."
-            az acr import -n $AZURE_CONTAINER_REGISTRY_NAME --source $SOURCE_REGISTRY.azurecr.io/$AZURE_CONTAINER_REPOSITORY_NAME:$image_tag -image $AZURE_CONTAINER_REPOSITORY_NAME:$RELEASE_VERSION-${{ github.sha }}
+          if az acr repository show-tags -n $SOURCE_REGISTRY --repository $AZURE_CONTAINER_REPOSITORY_NAME --query "contains(@, '${SOURCE_IMAGE_TAG}')" | grep -q true; then
+            echo "✅ | Image exists in QA ACR."
+            az acr import -n $AZURE_CONTAINER_REGISTRY_NAME --source $SOURCE_REGISTRY.azurecr.io/$AZURE_CONTAINER_REPOSITORY_NAME:$SOURCE_IMAGE_TAG -image $AZURE_CONTAINER_REPOSITORY_NAME:$RELEASE_VERSION-${{ github.sha }}
             # in case ACR is in another subscription: 
             # az acr import -n myregistry --source sourcerepository:sourcetag -t targetrepository:targettag -r /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sourceResourceGroup/providers/Microsoft.ContainerRegistry/registries/sourceRegistry
-
             else
-            echo "Image does not exist. Create a release branch first."
+            echo "❌ | Image does not exist in QA ACR. Create a release or hotfix branch first."
             exit 1
           fi
-
 
   deploy-flow:
     runs-on: ubuntu-latest
